@@ -285,7 +285,7 @@ then
 					EXmetaDemux.exe $id.m2ts  24
 					rm $id.track_* 2> /dev/null
 					tsMuxeR.exe "$id.meta" "./"   > /dev/null 2> /dev/null
-			if [ $? != 0 ] && [ `wc -l "$id.meta"| awk '{printf $1}'` -ne 0 ]
+			if [ $? != 0 ]
 			then
 				echo
 				echo
@@ -344,27 +344,16 @@ then
 					done
 	#############################################Temp
 	wavnum=0
-
-	for i in $id.track_*.wav
+	for j in $id.track_*.wav
 	do
-		if [ -e "$i" ]
+		if [ -e "$j" ]
 		then
 			if [ $wavnum -eq 0 ]
 			then
-				wav2="$i"
+				wav2="$j"
 			else
-				if [ $wavnum -eq 1 ]
-				then
-					wav1="$wav2"
-					wav2="$i"
-				else
-					if [ $wavnum -eq 2 ]
-					then
-						wav3="$i"
-					else
-						wav4="$i"
-					fi
-				fi
+				wav1="$wav2"
+				wav2="$j"
 			fi
 			wavnum="`expr $wavnum + 1`" 
 		fi
@@ -381,129 +370,9 @@ then
 			echo
 			echo 
 			ecstat=0
-			rm "$wav2"
+			rm "$wav2" 2> /dev/null
 		fi
 	fi
-	if [ $wavnum -ge 3 ]
-	then
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav3" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav3"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav3"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav3" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav3"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav3"
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav2"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav2"
-		fi
-	fi
-	if [ $wavnum -ge 4 ]
-	then
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav4" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav4"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav4"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav4" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav4"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav4"
-			else
-				if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav3" "$wav4" 2> /dev/null| xdeltout 5
-				then
-					echo
-					echo
-					echo
-					echo "Dupe $wav3 $wav4"
-					echo
-					echo
-					echo 
-					ecstat=0
-					rm "$wav4"
-				fi
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav3" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav3"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav3"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav3" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav3"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav3"
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav2"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav2"
-		fi
-	fi
-	##################################
-
 	for j in $id.track_*.wav
 	do
 		#rm "$j.flac" 2> /dev/null
@@ -568,7 +437,7 @@ then
 					EXmetaDemux.exe $id.m2ts  24
 					rm $id.track_* 2> /dev/null
 					tsMuxeR.exe "$id.meta" "./"   > /dev/null 2> /dev/null
-			if [ $? != 0 ] && [ `wc -l "$id.meta"| awk '{printf $1}'` -ne 0 ]
+			if [ $? != 0 ]
 			then
 				echo
 				echo
@@ -625,27 +494,16 @@ then
 					done
 	#############################################Temp
 	wavnum=0
-
-	for i in $id.track_*.wav
+	for j in $id.track_*.wav
 	do
-		if [ -e "$i" ]
+		if [ -e "$j" ]
 		then
 			if [ $wavnum -eq 0 ]
 			then
-				wav2="$i"
+				wav2="$j"
 			else
-				if [ $wavnum -eq 1 ]
-				then
-					wav1="$wav2"
-					wav2="$i"
-				else
-					if [ $wavnum -eq 2 ]
-					then
-						wav3="$i"
-					else
-						wav4="$i"
-					fi
-				fi
+				wav1="$wav2"
+				wav2="$j"
 			fi
 			wavnum="`expr $wavnum + 1`" 
 		fi
@@ -662,128 +520,9 @@ then
 			echo
 			echo 
 			ecstat=0
-			rm "$wav2"
+			rm "$wav2" 2> /dev/null
 		fi
 	fi
-	if [ $wavnum -ge 3 ]
-	then
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav3" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav3"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav3"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav3" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav3"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav3"
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav2"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav2"
-		fi
-	fi
-	if [ $wavnum -ge 4 ]
-	then
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav4" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav4"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav4"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav4" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav4"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav4"
-			else
-				if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav3" "$wav4" 2> /dev/null| xdeltout 5
-				then
-					echo
-					echo
-					echo
-					echo "Dupe $wav3 $wav4"
-					echo
-					echo
-					echo 
-					ecstat=0
-					rm "$wav4"
-				fi
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav3" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav3"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav3"
-		else
-			if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav2" "$wav3" 2> /dev/null| xdeltout 5
-			then
-				echo
-				echo
-				echo
-				echo "Dupe $wav2 $wav3"
-				echo
-				echo
-				echo 
-				ecstat=0
-				rm "$wav3"
-			fi
-		fi
-		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
-		then
-			echo
-			echo
-			echo
-			echo "Dupe $wav1 $wav2"
-			echo
-			echo
-			echo 
-			ecstat=0
-			rm "$wav2"
-		fi
-	fi
-	##################################
 	for j in $id.track_*.wav
 	do
 		#echo QAAC: $id.track_*.wav
