@@ -1,0 +1,675 @@
+#!bash
+########################################
+###                                  ###
+###     RainStreet Ext Function      ###
+###	EXtoMKV_WAV                      ###
+###	V0.3 by saily                ###
+###                                  ###
+########################################
+#
+#
+#    
+
+srun=0
+gzip="$EXgzip"
+language="$EXlanguage"
+minvlength="$EXminvlength"
+buffer="$EXbuffer"
+export CYGWIN="nodosfilewarning"
+
+
+#
+#
+#
+##############################################
+
+
+###class Demux
+if [ $srun == 0 ] && [ rs"$1" == rs"toMKV" ]
+then
+	export n_hevc="`echo "$2"|sed "s/^[^|]*|//"`"
+	export h_hevc="`echo "$2"|sed "s/|[^|]*$//"`"
+	export n_444="`echo "$3"|sed "s/^[^|]*|//"`"
+	export h_444="`echo "$3"|sed "s/|[^|]*$//"`"
+
+	src="$4"
+
+###########################################################
+	if [ -e "$src" ] 2> /dev/null
+	then	
+		name1="`echo "$src"|sed "s/\\\\\\\\/\//g"`"
+		name2="`dirname "$name1"`"
+		cd "$name2"  2> /dev/null
+		name3="`echo "$name2"|sed "s/\//\\\\\\\\/g"`"
+		cd "$name3"  2> /dev/null
+		target="`basename "$name1"`"
+		if ! [ -d "$target" ]
+		then
+			if ! [ "aa`echo "$target"|sed "s/\.torrent$//g"`" == "aa$target" ]
+			then
+				target="`echo "$target"|sed "s/\.torrent$//g"`"
+				if ! [ -e "$target" ]
+				then
+					tcrc2mp4 "${target}.torrent"
+					if [ -d "$target" ]
+					then
+						src="$target"
+					fi
+				else
+					src="$target"
+				fi
+			fi
+		fi
+	fi
+###########################################################
+
+
+	if [ -d "$src" ]
+	then
+		cd "$src"
+		rm ../*/BDMV/STREAM/*.chapter.txt 2> /dev/null
+##	rm -r "../LightMKV" ########################## TEST
+		while [ -e "../LightMKV" ]
+		do
+			echo -e "\e[2J\e[1;1H"
+			echo please rmdir "LightMKV" ! 
+			sleep 1
+		done
+		mkdir "../LightMKV"
+		echo -e "\e[2J\e[1;1H"
+		echo Wait two second if you sure to convert M2TS to MKV
+		#sleep 2
+		for i in *.mp4  */*.mp4
+		do
+			echo -n
+			LightMKV prerm "$i" "cc"
+		done
+		for i in *.mp4  */*.mp4
+		do
+			echo -n
+			LightMKV premp4 "$i" "cc"
+		done
+		#sleep 2
+		for i in *.mp4  */*.mp4
+		do
+			echo -n
+			LightMKV getmp4 "$i" "cc"
+		done
+		if [ -e "../LightMKV" ] && [ aa"$5" == "aaLIGHT" ]
+		then
+			t1="`basename "$src"|sed "s/\[Aurora/\[Light-Raws/g"`"
+			if [ -e "../LightMKV/1080" ]
+			then
+				mv "../LightMKV/1080" "../LightMKV/$t1 (BD 1920x1080 HEVC-YUV420P10 FLAC)"
+			fi	
+			if [ -e "../LightMKV/720" ]
+			then
+				mv "../LightMKV/720" "../LightMKV/$t1 (BD 1280x720 HEVC-YUV444P10 AAC)"
+			fi	
+		fi
+	else
+		rm ../*/BDMV/STREAM/*.chapter.txt 2> /dev/null
+		echo -e "\e[2J\e[1;1H"
+		while [ -e "../LightMKV" ]
+		do
+			echo -e "\e[2J\e[1;1H"
+			echo please rmdir "LightMKV" ! 
+			read
+		done
+		mkdir "../LightMKV"
+		LightMKV getmp4 "$src" "cc"
+	fi
+	if [ -e "../LightMKV/LENGTH_NOT_COMPAT.TXT" ] || [ -e "../LightMKV/MissFile.TXT" ] 
+	then
+		echo -e "\e[2J\e[1;1H"
+		if [ -e "../LightMKV/MissFile.TXT" ] 
+		then
+			echo ....................................................................
+			echo ERR: "TARGET FILE NOT EXIST"
+			echo ....................................................................
+			echo
+			echo COUNT: "`cat "../LightMKV/MissFile.TXT" | wc -l`"
+			echo
+		fi
+		if [ -e "../LightMKV/LENGTH_NOT_COMPAT.TXT" ] 
+		then
+			echo ....................................................................
+			echo ERR: "TARGET LENGTH INCOMPAT"
+			echo ....................................................................
+			echo
+			echo COUNT: $((`cat "../LightMKV/LENGTH_NOT_COMPAT.TXT" | wc -l` / 2))
+			echo
+		fi
+	fi
+fi
+if [ $srun == 0 ] && [ rs"$1" == rs"prerm" ]
+then
+	if [ -e "$2" ]
+	then
+		path="$2"
+		id=""
+		tt=""
+		id="`mp4id "$path"`"
+		tt="`mp4title "$path"`"
+		if [ aa"$id" != aa ]
+		then	
+			if [ aa"$tt" != aa ]
+			then
+				if [ $id -ge 1000 ]
+				then
+					m2ts="../$tt/BDMV/STREAM/00${id:2}.m2ts"
+					if [ -e "$m2ts" ]
+					then
+						rm "../$tt/BDMV/STREAM/00${id:2}_cut_"* 2> /dev/null
+					fi
+				fi
+			fi
+		fi
+	fi
+fi
+if [ $srun == 0 ] && [ rs"$1" == rs"premp4" ]
+then
+	if [ -e "$2" ]
+	then
+		path="$2"
+		id=""
+		tt=""
+		id="`mp4id "$path"`"
+		tt="`mp4title "$path"`"
+		if [ aa"$id" != aa ]
+		then	
+			if [ aa"$tt" != aa ]
+			then
+				if [ $id -ge 1000 ]
+				then
+					m2ts="../$tt/BDMV/STREAM/00${id:2}.m2ts"
+					if [ -e "$m2ts" ]
+					then
+						#id=00${id:2}_cut_${id:0:2}
+						#echo $id
+						mstime=`mp4mslength "$path"`
+						if [ aa"$mstime" != "aa" ]
+						then
+							mstimedir="../$tt/BDMV/STREAM/"00${id:2}_cut_mstime_${id:0:2}
+							cutpathdir="../$tt/BDMV/STREAM/"00${id:2}_cut_path_${id:0:2}
+							echo -n $mstime > "$mstimedir"
+							echo -n "$path" > "$cutpathdir"
+ 						fi
+						
+					fi
+				fi
+			fi
+		fi
+	fi
+fi
+if [ $srun == 0 ] && [ rs"$1" == rs"getmp4" ]
+then
+	if [ -e "$2" ]
+	then
+		path="$2"
+		id=""
+		tt=""
+		id="`mp4id "$path"`"
+		tt="`mp4title "$path"`"
+		if [ aa"$id" != aa ]
+		then	
+			if [ aa"$tt" != aa ]
+			then	
+				LightMKV press "$tt" "$id" "`pwd`" "`echo "$path"|sed "s/([^(].*//g"`" "$path" 
+			fi
+		fi
+	fi
+fi
+if [ $srun == 0 ] && [ rs"$1" == rs"press" ]
+then
+	tt="$2"
+	id="$3"
+	od=${id:0:2}
+	if [ $id -ge 1000 ]
+	then
+		[ "$od" != "01" ] && exit
+		id=00${id:2}
+	fi
+	pcd="`dirname "$4"`"
+	ahea="$5"
+	path="$6"
+	missfile="`pwd`/../LightMKV/MissFile.TXT"
+	basepwd="`pwd`"
+	
+	if ! [ -d "../$tt/BDMV/STREAM" ]
+	then
+		echo ....................................................................
+		echo ERR: "$tt/BDMV NOT EXIST"
+		echo -ne ERR: "$tt/BDMV NOT EXIST\r\n" >> "$missfile"
+		echo ....................................................................
+	else
+		cd "../$tt/BDMV/STREAM"
+		process=0
+##		if [ cc == dd ] ###########
+##		then ############
+		################################## pass1
+		ishevc=0
+		for i in *.*.hevc
+		do
+			[ -e "$i" ] && ishevc=1
+		done
+		for i in $id.*.hevc
+		do
+			if ! [ -e "$i" ]
+			then
+				if [ $ishevc -eq 1 ]	
+				then
+					echo ....................................................................
+					echo ERR: "$tt/$i NOT EXIST"
+					echo -ne ERR: "$tt/$i NOT EXIST\r\n" >> "$missfile"
+					echo ....................................................................
+				fi
+			else
+					echo
+					echo ....................................................................
+					echo PROCESS: "$tt/BDMV/STREAM/$i"
+					echo ....................................................................
+					echo
+					k="`echo "$i"|sed "s/hevc$/hevc.265/g"`"
+					rm "$k" 2> /dev/null
+					ln  "$i"  "$k"  
+					##echo $k
+				if [ $process -eq 0 ]
+				then
+					process=1
+					clpi="../BACKUP/CLIPINF/$id.clpi"
+					Nclpi="`RSFileLength.exe "$clpi"`"
+					 [ -e $id.chapter.txt ] || EXtoMKV_WAV EXchapter 233 322
+					rm $id.track_* 2> /dev/null
+					tsMuxeR.exe $id.m2ts > "$id.demux"
+					EXmetaDemux.exe $id.m2ts  24
+					rm $id.track_* 2> /dev/null
+					tsMuxeR.exe "$id.meta" "./"   > /dev/null 2> /dev/null
+			if [ $? != 0 ]
+			then
+				echo
+				echo
+				echo ERR UNABLE TO DEMUX
+				echo 
+				echo `pwd`/$id
+				echo
+				echo ENTER TO CONTINUE
+				read
+			fi
+					rm "$id.meta"
+					sate=""
+
+	rm $id.track_*.wav.cmd 2> /dev/null
+	rm $id.track_*.mka 2> /dev/null
+	for l in $id.track_*.*.wav
+	do
+		if [ -e "$l" ]
+		then
+			j="`echo "$l"|sed "s/[^\.]*\.wav//g"`"
+			if [ -e "${j}wav.cmd" ]
+			then
+				echo -n " + \"$l\"" >> "${j}wav.cmd"
+			else
+				echo -n "mkvmerge -o \"${j}mka\" \"$l\"" > "${j}wav.cmd"
+			fi
+		fi
+	done
+	for l in $id.track_*.wav.cmd
+	do
+		if [ -e "$l" ] 
+		then
+			. "$l"
+			j="`echo "$l"|sed "s/wav\.cmd$//g"`"
+			eac3to "${j}mka" "${j}wav" 
+			rm "${j}mka"
+		fi
+	done
+	rm $id.track_*.*.wav 2> /dev/null
+	rm $id.track_*.mka 2> /dev/null
+	rm $id.track_*.wav.cmd 2> /dev/null
+
+
+					for j in  $id.track_*.dts $id.track_*.ac3  $id.track_*.dtshd $id.track_*.dts $id.track_*.thd
+					do
+		
+						if [ -e "$j" ]
+						then
+							tar="`echo "$j"|sed "s/dts$/wav/g"|sed "s/ac3$/wav/g"|sed "s/dtshd$/wav/g"|sed "s/dts$/wav/g"|sed "s/thd$/wav/g"`"
+							eac3to "$j" "$tar" 
+							if [ -e "$tar" ] 
+							then
+								rm "$j" 2> /dev/null
+							fi
+						fi
+					done
+	#############################################Temp
+	wavnum=0
+	for j in $id.track_*.wav
+	do
+		if [ -e "$j" ]
+		then
+			if [ $wavnum -eq 0 ]
+			then
+				wav2="$j"
+			else
+				wav1="$wav2"
+				wav2="$j"
+			fi
+			wavnum="`expr $wavnum + 1`" 
+		fi
+	done
+	if [ $wavnum -ge 2 ]
+	then
+		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
+		then
+			echo
+			echo
+			echo
+			echo "Dupe $wav1 $wav2"
+			echo
+			echo
+			echo 
+			ecstat=0
+			rm "$wav2" 2> /dev/null
+		fi
+	fi
+	for j in $id.track_*.wav
+	do
+		#rm "$j.flac" 2> /dev/null
+		#eac3to.exe "$j" "$j.flac" -down16
+		#flac -o "`echo "$j"|sed "s/wav$/flac/g"`" "$j.flac" -8
+		#rm "$j.flac" 2> /dev/null
+		rm "`echo "$j"|sed "s/wav$/flac/g"`" 2> /dev/null
+		eac3to.exe "$j" "`echo "$j"|sed "s/wav$/flac/g"`" -down16
+		rm "$j" 2> /dev/null
+	done
+	rm $id.track_*Log.txt 2> /dev/null
+	########################################################
+			fi
+			mkvmerge9="-o $i.mkv"
+			[ -e $id.chapter.txt ] && mkvmerge9="$mkvmerge9 --chapters $id.chapter.txt"
+			mkvmerge9="$mkvmerge9 $k"
+			for j in $id.track_*
+			do
+				mkvmerge9="$mkvmerge9 $j"
+			done
+			echo mkvmerge $mkvmerge9
+			mkvmerge9 $mkvmerge9
+			rm "$k" 2> /dev/null
+		fi
+	done
+	################################## pass2
+	if [ aa"$n_444" != "aa" ] 
+	then
+		ishevc444=0
+		for i in *.*.hevc444
+		do
+			[ -e "$i" ] && ishevc444=1
+		done
+		for i in $id.*.hevc444
+		do
+			if ! [ -e "$i" ]
+			then
+				if [ $ishevc444 -eq 1 ]	
+				then
+					echo ....................................................................
+					echo ERR: "$tt/$i NOT EXIST"
+					echo -ne ERR: "$tt/$i NOT EXIST\r\n" >> "$missfile"
+					echo ....................................................................
+				fi
+			else	
+					echo
+					echo ....................................................................
+					echo PROCESS: "$tt/BDMV/STREAM/$i"
+					echo ....................................................................
+					echo
+					k="`echo "$i"|sed "s/hevc444$/hevc444.265/g"`"
+					rm "$k" 2> /dev/null
+					ln  "$i"  "$k"  
+					##echo $k
+				if [ $process -eq 0 ]
+				then
+					clpi="../BACKUP/CLIPINF/$id.clpi"
+					Nclpi="`RSFileLength.exe "$clpi"`"
+					 [ -e $id.chapter.txt ] || EXtoMKV_WAV EXchapter 233 322
+					rm $id.track_* 2> /dev/null
+					tsMuxeR.exe $id.m2ts > "$id.demux"
+					EXmetaDemux.exe $id.m2ts  24
+					rm $id.track_* 2> /dev/null
+					tsMuxeR.exe "$id.meta" "./"   > /dev/null 2> /dev/null
+			if [ $? != 0 ]
+			then
+				echo
+				echo
+				echo ERR UNABLE TO DEMUX
+				echo 
+				echo `pwd`/$id
+				echo
+				echo ENTER TO CONTINUE
+				read
+			fi
+					rm "$id.meta"
+					sate=""
+
+
+	rm $id.track_*.wav.cmd 2> /dev/null
+	rm $id.track_*.mka 2> /dev/null
+	for l in $id.track_*.*.wav
+	do
+		if [ -e "$l" ]
+		then
+			j="`echo "$l"|sed "s/[^\.]*\.wav//g"`"
+			if [ -e "${j}wav.cmd" ]
+			then
+				echo -n " + \"$l\"" >> "${j}wav.cmd"
+			else
+				echo -n "mkvmerge -o \"${j}mka\" \"$l\"" > "${j}wav.cmd"
+			fi
+		fi
+	done
+	for l in $id.track_*.wav.cmd
+	do
+		. "$l"
+		j="`echo "$l"|sed "s/wav\.cmd$//g"`"
+		eac3to "${j}mka" "${j}wav"
+		rm "${j}mka"
+	done
+	rm $id.track_*.*.wav 2> /dev/null
+	rm $id.track_*.mka 2> /dev/null
+	rm $id.track_*.wav.cmd 2> /dev/null
+
+
+					for j in  $id.track_*.dts $id.track_*.ac3  $id.track_*.dtshd $id.track_*.dts $id.track_*.thd
+					do
+		
+						if [ -e "$j" ]
+						then
+							tar="`echo "$j"|sed "s/dts$/wav/g"|sed "s/ac3$/wav/g"|sed "s/dtshd$/wav/g"|sed "s/dts$/wav/g"|sed "s/thd$/wav/g"`"
+							eac3to "$j" "$tar" 
+							if [ -e "$tar" ] 
+							then
+								rm "$j" 2> /dev/null
+							fi
+						fi
+					done
+	#############################################Temp
+	wavnum=0
+	for j in $id.track_*.wav
+	do
+		if [ -e "$j" ]
+		then
+			if [ $wavnum -eq 0 ]
+			then
+				wav2="$j"
+			else
+				wav1="$wav2"
+				wav2="$j"
+			fi
+			wavnum="`expr $wavnum + 1`" 
+		fi
+	done
+	if [ $wavnum -ge 2 ]
+	then
+		if ! xdelta3.exe -f -e -v -B 268435456 -W 16777216 -I 0 -0 -c -s "$wav1" "$wav2" 2> /dev/null| xdeltout 5
+		then
+			echo
+			echo
+			echo
+			echo "Dupe $wav1 $wav2"
+			echo
+			echo
+			echo 
+			ecstat=0
+			rm "$wav2" 2> /dev/null
+		fi
+	fi
+	for j in $id.track_*.wav
+	do
+		#echo QAAC: $id.track_*.wav
+		ffmpeg.exe -i "$j" -vn  -ac 2 -acodec pcm_f32le -f wav -  2>/dev/null | qaac  --cvbr  160 -q 2 -o "`echo "$j"|sed "s/wav$/aac/g"`" - 
+		rm "$j" 2> /dev/null
+	done
+	rm $id.track_*Log.txt 2> /dev/null
+	########################################################
+				fi
+				if [ $process -eq 1 ]
+				then
+					for j in $id.track_*.flac
+					do
+						ffmpeg.exe -i "$j" -vn  -ac 2 -acodec pcm_f32le -f wav -  2>/dev/null  | qaac  --cvbr  160 -q 2 -o "`echo "$j"|sed "s/flac$/aac/g"`" -
+						rm "$j" 2> /dev/null
+					done
+					rm $id.track_*Log.txt 2> /dev/null
+				fi
+				process=2
+			mkvmerge9="-o $i.mkv"
+			[ -e $id.chapter.txt ] && mkvmerge9="$mkvmerge9 --chapters $id.chapter.txt"
+			mkvmerge9="$mkvmerge9 $k"
+			for j in $id.track_*
+			do
+				mkvmerge9="$mkvmerge9 $j"
+			done
+			echo mkvmerge $mkvmerge9
+			mkvmerge9 $mkvmerge9
+			rm "$k" 2> /dev/null
+			fi
+		done
+	fi
+	rm $id.meta 2> /dev/null
+	rm $id.demux 2> /dev/null
+	rm $id.track_* 2> /dev/null
+##fi ##############
+	##ln ../../00005.720.hevc444.mkv 00005.720.hevc444.mkv 2>/dev/null
+	##ln ../../00005.1080.hevc.mkv 00005.1080.hevc.mkv 2>/dev/null
+###################### pass3
+	if [ "$od" == "00" ]
+	then
+		for i in $id.*.hevc 
+		do
+			if [ -e "$i.mkv" ]
+			then
+				lev="`echo "$i"|sed "s/^$id\.//"|sed "s/\.hevc$//"`"
+				mkdir "$pcd/LightMKV/$lev"
+			        mkdir -p "$pcd/LightMKV/$lev/`dirname "$path"`"	
+				target="`echo "$path"|sed "s/\[Aurora/\[$h_hevc/g"|sed "s/ x264 / $n_hevc /g"|sed "s/ AAC/ FLAC/g"|sed "s/mp4$/mkv/g"`"
+				LightMKV check "$i.mkv" "$basepwd" "$path"
+				mv "$i.mkv" "$pcd/LightMKV/$lev/$target"
+			fi
+		done
+		for i in $id.*.hevc444
+		do
+			if [ -e "$i.mkv" ]
+			then
+				lev="`echo "$i"|sed "s/^$id\.//"|sed "s/\.hevc444$//"`"
+				mkdir "$pcd/LightMKV/$lev"
+			        mkdir -p "$pcd/LightMKV/$lev/`dirname "$path"`"	
+				target="`echo "$path"|sed "s/\[Aurora/\[$h_444/g"|sed "s/ x264 / $n_444 /g"|sed "s/ 1920x1080/ 1280x720/g"|sed "s/mp4$/mkv/g"`"
+				LightMKV check "$i.mkv" "$basepwd" "$path"
+				mv "$i.mkv" "$pcd/LightMKV/$lev/$target"
+			fi
+		done
+	else
+		for i in $id.*.hevc 
+		do
+			if [ -e "$i.mkv" ]
+			then
+				lev="`echo "$i"|sed "s/^$id\.//"|sed "s/\.hevc$//"`"
+				mkdir "$pcd/LightMKV/$lev"
+				mkvp="`mkvpts -y -i "$i.mkv" -c copy -an -sn "$i.tmp.mkv" 2>/dev/null |  mkvcutat "${id}_cut_mstime_"*`"
+				rm "$i.tmp.mkv" 2>/dev/null
+				if [ aa"$mkvp" != "aa" ]
+				then
+					rm "${id}_cut_light"*.mkv 2>/dev/null
+					mkvmerge9 -o "${id}_cut_light.mkv" $mkvp "$i.mkv" #2>/dev/null
+					rm "$i.mkv" 2>/dev/null
+				fi
+				for j in "${id}_cut_light"*.mkv
+				do
+				if [ -e "$j" ]
+				then
+					idd=${j:17:2}
+					path="`cat "00005_cut_path_$idd"`"
+			        	mkdir -p "$pcd/LightMKV/$lev/`dirname "$path"`"	
+					target="`echo "$path"|sed "s/\[Aurora/\[$h_hevc/g"|sed "s/ x264 / $n_hevc /g"|sed "s/ AAC/ FLAC/g"|sed "s/mp4$/mkv/g"`"
+					LightMKV check "$j" "$basepwd" "$path"
+					mv "$j" "$pcd/LightMKV/$lev/$target"
+				fi
+				done
+
+			fi
+		done
+		for i in $id.*.hevc444 
+		do
+			if [ -e "$i.mkv" ]
+			then
+				lev="`echo "$i"|sed "s/^$id\.//"|sed "s/\.hevc444$//"`"
+				mkdir "$pcd/LightMKV/$lev"
+				mkvp="`mkvpts -y -i "$i.mkv" -c copy -an -sn "$i.tmp.mkv" 2>/dev/null |  mkvcutat "${id}_cut_mstime_"*`"
+				rm "$i.tmp.mkv" 2>/dev/null
+				if [ aa"$mkvp" != "aa" ]
+				then
+					rm "${id}_cut_light"*.mkv 2>/dev/null
+					mkvmerge9 -o "${id}_cut_light.mkv" $mkvp "$i.mkv" #2>/dev/null
+					rm "$i.mkv" 2>/dev/null
+				fi
+				for j in "${id}_cut_light"*.mkv
+				do
+				if [ -e "$j" ]
+				then
+					idd=${j:17:2}
+					path="`cat "00005_cut_path_$idd"`"
+					mkdir -p "$pcd/LightMKV/$lev/`dirname "$path"`"	
+					target="`echo "$path"|sed "s/\[Aurora/\[$h_444/g"|sed "s/ x264 / $n_444 /g"|sed "s/ 1920x1080/ 1280x720/g"|sed "s/mp4$/mkv/g"`"
+					LightMKV check "$j" "$basepwd" "$path"
+					mv "$j" "$pcd/LightMKV/$lev/$target"
+				fi
+				done
+
+			fi
+		done
+	fi
+	rm "${id}_cut_"* 2> /dev/null
+fi
+fi
+if [ $srun == 0 ] && [ rs"$1" == rs"check" ]
+then
+	mkv="$2"
+	path="$4"
+	rms="`mkvpts -y -i "$mkv" -c copy -an -sn "$mkv.tmp.mkv" 2>/dev/null | mkvmslen`"
+	rm "$mkv.tmp.mkv" 2> /dev/null
+	cd "$3"
+	sms=`mp4mslength "$path"`
+	if [ $(($sms - $rms)) -gt 1000 ] || [ $(($rms - $sms)) -gt 1000 ]  
+	then
+		echo
+		echo ....................................................................
+		echo ERROR: Length incompat
+		echo "$rms ms | `mp4id "$path"`.mkv"
+		echo "$sms ms | $path"
+		echo ....................................................................
+		echo
+		echo -ne "$rms ms | `mp4id "$path"`.mkv\r\n" >> ../LightMKV/LENGTH_NOT_COMPAT.TXT
+		echo -ne "$sms ms | $path\r\n" >> ../LightMKV/LENGTH_NOT_COMPAT.TXT
+	fi
+fi
+
