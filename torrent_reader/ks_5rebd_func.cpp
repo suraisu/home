@@ -25,7 +25,7 @@ char *w2t(const wchar_t* unicode)
 wchar_t *t2w(const char* szU8)
 {
     int wcsLen = ::MultiByteToWideChar(CP_UTF8, 0, szU8, strlen(szU8), NULL, 0);
-    wchar_t* wszString = new wchar_t[wcsLen + 1];
+    wchar_t* wszString = (wchar_t*)malloc(sizeof(wchar_t)*(wcsLen + 1));
     ::MultiByteToWideChar(CP_UTF8, 0, szU8, strlen(szU8), wszString, wcsLen);
     wszString[wcsLen] = '\0';
     return wszString;

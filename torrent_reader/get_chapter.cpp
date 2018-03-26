@@ -50,9 +50,51 @@ void mksha1(pfile me)
 	free(ltcc);
 }
 
-void wtfwks(pfile me)
+pfile *wtfw_pdir2(pfile *me,wchar_t *dir)
+{
+	int i,l1=wcslen(dir)+2;
+	wchar_t dirr[l1+1];dirr[l1]=0;
+	wcsncpy(dirr,dir,l1-2);
+	dirr[l1-1]=L'*';
+	dirr[l1-2]=L'/';
+	long handle,khandle=1;  
+	_wfinddata64_t fileinto;  
+	handle = _wfindfirst64(dirr, &fileinto); 
+	if(handle!=-1)
+		khandle=0;
+	while(!khandle)
+	{
+		if(wcscmp(fileinto.name,L"."))
+		if(wcscmp(fileinto.name,L".."))
+		{
+		int l2=wcslen(dir)+wcslen(fileinto.name)+1;
+		wchar_t dirrr[l2+1];dirrr[l2]=0;
+		for(i=0;i<wcslen(dir);++i)
+			dirrr[i]=dir[i];
+		dirrr[i]=L'/';
+		for(++i;i<l2;++i)
+			dirrr[i]=fileinto.name[i-wcslen(dir)-1];
+		if(fileinto.attrib&_A_SUBDIR)
+		{
+
+			me[0]=wtfw_pdir(me[0],dirrr);
+		} 
+		else
+		{
+			me[1]=wtfw_file(me[1],dirrr,fileinto.name,fileinto.size);
+		}
+		}
+	   khandle=_wfindnext64(handle, &fileinto);
+	}
+	return me;
+}
+
+void wtfwks(pfile me1,pfile me2)
 {
 	long long i,j;
+	pfile *me=(pfile *)malloc(sizeof(pfile)*2);
+	me[0]=me1;
+	me[1]=me2;
 	long handle,khandle=1;  
 	_wfinddata64_t fileinto;  
 	handle = _wfindfirst64((wchar_t*)L"./*", &fileinto); 
@@ -62,111 +104,100 @@ void wtfwks(pfile me)
 	{
 		if(wcscmp(fileinto.name,L"."))
 		if(wcscmp(fileinto.name,L".."))
-		if(!wcscmp(fileinto.name,L"#ks"))
 		if(fileinto.attrib&_A_SUBDIR)
 		{
-				me=wtfw_pdir(me,fileinto.name);
+				wtfw_pdir2(me,fileinto.name);
 		} 
-		else
-		{
-			me=wtfw_file(me,fileinto.name,fileinto.name,fileinto.size);
-		}
 	   khandle=_wfindnext64(handle, &fileinto);
 	}
 }
 
-void wtfwall(pfile me)
+wchar_t *chapter(const char* m2ts)
 {
-	long long i,j;
-	long handle,khandle=1;  
-	_wfinddata64_t fileinto;  
-	handle = _wfindfirst64((wchar_t*)L"./*", &fileinto); 
-	if(handle!=-1)
-		khandle=0;
-	while(!khandle)
-	{
-		if(wcscmp(fileinto.name,L"."))
-		if(wcscmp(fileinto.name,L".."))
-		if(wcscmp(fileinto.name,L"#ks"))
-		if(fileinto.attrib&_A_SUBDIR)
-		{
-				me=wtfw_pdir(me,fileinto.name);
-		} 
-		else
-		{
-			me=wtfw_file(me,fileinto.name,fileinto.name,fileinto.size);
-		}
-	   khandle=_wfindnext64(handle, &fileinto);
-	}
-}
-
-wchar_t *hevc(const char* m2ts)
-{
+	// hevc
+	// chapter.txt
     int l=strlen(m2ts);
-    char* rt = new char[l + 1];
-    rt[l] = '\0';
+    char* rt = new char[l + 7 + 1];
+    rt[l+7] = '\0';
     strcpy(rt,m2ts);
-    rt[l-1]='c';
-    rt[l-2]='v';
-    rt[l-3]='e';
-    rt[l-4]='h';
+    rt[l+6]='t';
+    rt[l+5]='x';
+    rt[l+4]='t';
+    rt[l+3]='.';
+    rt[l+2]='r';
+    rt[l+1]='e';
+    rt[l]='t';
+    rt[l-1]='p';
+    rt[l-2]='a';
+    rt[l-3]='h';
+    rt[l-4]='c';
     wchar_t *wrt=t2w(rt);
     free(rt);
     return wrt;
 }
 
 
-wchar_t *hevc_bak(const char* m2ts)
+wchar_t *chapter_bak(const char* m2ts)
 {
     int l=strlen(m2ts)+4;
-    char* rt = new char[l + 1];
-    rt[l] = '\0';
+    char* rt = new char[l + 7 + 1];
+    rt[l+7] = '\0';
     strcpy(rt,m2ts);
-    rt[l-1]='k';
-    rt[l-2]='a';
-    rt[l-3]='b';
-    rt[l-4]='.';
-    rt[l-5]='c';
-    rt[l-6]='v';
-    rt[l-7]='e';
-    rt[l-8]='h';
+    rt[l+6]='t';
+    rt[l+5]='x';
+    rt[l+4]='t';
+    rt[l+3]='.';
+    rt[l+2]='k';
+    rt[l+1]='a';
+    rt[l]='b';
+    rt[l-1]='.';
+    rt[l-2]='r';
+    rt[l-3]='e';
+    rt[l-4]='t';
+    rt[l-5]='p';
+    rt[l-6]='a';
+    rt[l-7]='h';
+    rt[l-8]='c';
     wchar_t *wrt=t2w(rt);
     free(rt);
     return wrt;
 }
-
 
 main()
 {
-    if(_access( "#ks", 0 )==-1)
-	    chdir("../");
-    if(_access( "#ks", 0 )==-1)
-    {
-	    printf("No ksdir!\n");
-	    getchar();
-	    return 0;
-    }
 
 
-    pfile me,ks,all;
-    me=(pfile)malloc(sizeof(tfile));
-    pfile ksstart=me;
-    initfile(me);
-    wtfwks(me);
-    me=(pfile)malloc(sizeof(tfile));
-    pfile allstart=me;
-    initfile(me);
-    wtfwall(me);
+    pfile me,me1,me2,ks,all;
+    me=NULL;
+    me1=(pfile)malloc(sizeof(tfile));
+    me2=(pfile)malloc(sizeof(tfile));
+    initfile(me1);
+    initfile(me2);
+    pfile ksstart=me1;
+    pfile allstart=me2;
+    wtfwks(me1,me2);
+   
 
     int stat=1;
-    for(me=ksstart->next;me!=NULL;me=me->next)
+    for(me=ksstart;me->next!=NULL;)
     {
-	if(_waccess(hevc(me->path),0)==-1)
-   	{
-	    printf("\nhevc lost: %s!\n",me->path);
-	    stat=0;
-    	}
+	if(_waccess(chapter(me->next->path),0)==-1)
+		me->next=me->next->next;
+	else
+		me=me->next;
+	
     }
+   for(me=allstart->next;me!=NULL;me=me->next)
+	mksha1(me);
+    for(me=ksstart->next;me!=NULL;me=me->next)
+	mksha1(me);
+
+   // for(ks=ksstart->next;ks!=NULL;ks=ks->next)
+//	for(all=allstart->next;all!=NULL;all=all->next)
+//	       wprintf(L"Link: %ws %ws \n\n",chapter(all->path),chapter(all->path));
+  //  return 0;
+    		
+ 
     if(!stat)
     {
         printf("\n\nPlease Check!\n");
@@ -175,30 +206,22 @@ main()
     }
     //for(me=ksstart->next;me!=NULL;me=me->next)
 //	    wprintf(L"Link: %ws \n",t2w(me->path));
-    for(me=ksstart->next;me!=NULL;me=me->next)
-	mksha1(me);
-    for(me=allstart->next;me!=NULL;me=me->next)
-	mksha1(me);
+ 
+
     for(ks=ksstart->next;ks!=NULL;ks=ks->next)
 	for(all=allstart->next;all!=NULL;all=all->next)
 	{
 		if(all->color&&!strncmp(ks->sha1,all->sha1,20))
 		{
 			all->color=0;
-			if(_waccess(hevc(all->path),0)!=-1)
-			{
-				if(_waccess(hevc(all->path),0)!=-1)
-					_wremove(hevc_bak(all->path));
-				_wrename(hevc(all->path),hevc_bak(all->path));
-			}
 //////////////////////////////////////////   need unicode
-			if(!CreateHardLinkW(hevc(all->path),hevc(ks->path),NULL))
+			if(!CopyFileW(chapter(ks->path),chapter(all->path),false))
 			{
 //////////////////////////////////////////
-				wprintf(L"ERR: Can't Link: %ws to %ws\n",hevc(ks->path),hevc(all->path));
+				wprintf(L"ERR: Can't Link: %ws to %ws\n",chapter(ks->path),chapter(all->path));
 				stat=0;
 			}
-			//wprintf(L"Link: %ws to %ws\n",hevc(ks->path),hevc(all->path));
+			//wprintf(L"Link: %ws to %ws\n",chapter(ks->path),chapter(all->path));
 			//stat=0;
 		}
 	}
